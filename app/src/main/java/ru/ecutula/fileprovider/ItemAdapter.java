@@ -94,7 +94,13 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
         int position = getAdapterPosition();
         Item currentItem = items.get(position);
 
-        new android.support.v7.app.AlertDialog.Builder(context).setMessage("Delete File?").show();
+        new android.support.v7.app.AlertDialog
+                .Builder(context)
+                .setTitle("DELETE FILE?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setCancelable(true)
+                .setMessage(currentItem.getName()+"\n")
+                .show();
         Toast.makeText(v.getContext(), "Pressed long " + getAdapterPosition(), Toast.LENGTH_SHORT)
           .show();
 
