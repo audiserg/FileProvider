@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,11 +13,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.List;
 
 import ru.ecutula.fileprovider.item.BackItem;
 import ru.ecutula.fileprovider.item.DeviceItem;
 import ru.ecutula.fileprovider.item.DirItem;
+import ru.ecutula.fileprovider.item.FileItem;
 import ru.ecutula.fileprovider.item.Item;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder> {
@@ -31,10 +34,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
   private List<Item> items;
   private LayoutInflater inflater;
   private Context context;
+  private BrowserActivity activity;
 
   public ItemAdapter(Context context, List<Item> items) {
     this.items = items;
     this.context = context;
+    this.activity=(BrowserActivity)context; 
     this.inflater = LayoutInflater.from(context);
   }
 
@@ -79,32 +84,83 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
     @Override
     public void onClick(View v) {
       int position = getAdapterPosition();
+      //Log.d(">>"," position-> "+position);
+      //Prevent exception, when fast click
+      if(position<0)position=0;
+
       Item currentItem = items.get(position);
-      // Toast.makeText(v.getContext(),"Pressed "+position,Toast.LENGTH_SHORT).show();
       if (currentItem instanceof DirItem
           || currentItem instanceof BackItem
           || currentItem instanceof DeviceItem) {
-        BrowserActivity browserActivity = (BrowserActivity) ItemAdapter.this.context;
-        browserActivity.viewUpdate(currentItem);
+
+        viewUpdate(currentItem);
+      return;
       }
+      //if item is file
+      activity.getFileProvider().startActivityForFile(currentItem.getPath());
+
+
     }
 
     @Override
     public boolean onLongClick(View v) {
-        int position = getAdapterPosition();
-        Item currentItem = items.get(position);
-
-        new android.support.v7.app.AlertDialog
-                .Builder(context)
-                .setTitle("DELETE FILE?")
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setCancelable(true)
-                .setMessage(currentItem.getName()+"\n")
-                .show();
-        Toast.makeText(v.getContext(), "Pressed long " + getAdapterPosition(), Toast.LENGTH_SHORT)
-          .show();
-
+      int position = getAdapterPosition();
+      Item currentItem = items.get(position);
+      deleteFileDialog(v, currentItem);
       return false;
     }
+
+    private void deleteFileDialog(View v, Item currentItem) {
+      String type=currentItem instanceof FileItem ?"file":currentItem instanceof DirItem ?"folder":"device";
+      android.support.v7.app.AlertDialog.Builder builder=new android.support.v7.app.AlertDialog.Builder(context)
+          .setTitle("DELETE FILE?")
+          .setIcon(android.R.drawable.ic_dialog_alert)
+          .setCancelable(true);
+
+      if (type != "file")
+        builder.setMessage("Are you want delete " + type + " " + currentItem.getName() + "\n");
+      else
+        builder.setMessage(
+            "Are you want delete  "
+                + type
+                + "\nFile: "
+                + getNameAndExt(currentItem.getName())
+                + "\n");
+          builder.show();
+
+      Toast.makeText(v.getContext(), "Pressed long " + getAdapterPosition(), Toast.LENGTH_SHORT)
+          .show();
+    }
+
+    void viewUpdate(Item item) {
+      //update view and get new files list from FileProvider
+      //variable deep  used for check directory tree and prevent out of border
+      String currentDir = new File(item.getPath()).getParent();
+      List<Item> items;
+      if (!(item instanceof BackItem)) {
+        items = activity.getFileProvider().GetFiles(item.getPath(), currentDir);
+        activity.deep++;
+      } else {
+        if (--activity.deep > 0)
+          items =
+              activity.getFileProvider().GetFiles(item.getPath(), currentDir);
+        else {
+          items = activity.getFileProvider().GetFiles(null, null);
+         activity.deep = 0;
+        }
+      }
+      setItems(items);
+      notifyDataSetChanged();
+    }
+  }
+
+  private String getNameAndExt(String fullname) {
+  int index=fullname.lastIndexOf(".");
+  if(index==-1) return fullname;
+  String filename=fullname.substring(0,index);
+  String extension=fullname.substring(index).replace(".","");
+  String add="";
+  if (extension!=null||extension!="")add="\nExtention: "+extension;
+  return filename+add;
   }
 }

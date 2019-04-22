@@ -1,4 +1,3 @@
 
-Ksquid:S1481"0Remove this unused "currentItem" local variable.(Ô’‘Q8¯ô ¤-
-Zsquid:S1854"?Remove this useless assignment to local variable "currentItem".(Ô’‘Q8¯ô ¤-
-bsquid:UselessImportCheck"4Remove this unused import 'android.app.AlertDialog'.(ª½øşüÿÿÿÿ8¯ô ¤-
+gsquid:S3358l"DExtract this nested ternary operation into an independent statement.(ÓØ§Ùûÿÿÿÿ8­šÜ¯¤-
+asquid:HiddenFieldCheck|"9Rename "items" which hides the field declared at line 33.(ƒãÓ98°¶Ğ¯¤-

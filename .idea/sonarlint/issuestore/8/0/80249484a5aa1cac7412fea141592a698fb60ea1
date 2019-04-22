@@ -1,10 +1,11 @@
 
-gsquid:S2259"KA "NullPointerException" could be thrown; "methodGetPath" is nullable here.(Û÷…×8ï¨Ùß£-
-Dsquid:S1148"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8ï¨Ùß£-
-Dsquid:S1148"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8ï¨Ùß£-
-esquid:S2147"DCombine this catch with the one at line 76, which has the same body.(¼¯•¶ùÿÿÿÿ8ï¨Ùß£-
-ssquid:S00117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(Å—Šãøÿÿÿÿ8ï¨Ùß£-
-Dsquid:S1148"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8ï¨Ùß£-
-`squid:S2147"DCombine this catch with the one at line 87, which has the same body.(åşáÿ8ï¨Ùß£-
-Dsquid:S1148"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8ï¨Ùß£-
-psquid:S00100"NRename this method name to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÎğŞÏúÿÿÿÿ8ï¨Ùß£-
+Fsquid:S1148e"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8æĞ¯¤-
+Fsquid:S1148\"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8æĞ¯¤-
+isquid:S2259c"KA "NullPointerException" could be thrown; "methodGetPath" is nullable here.(Û÷…×8æĞ¯¤-
+Fsquid:S1148Z"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8æĞ¯¤-
+usquid:S3776o"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(°èŸ±ıÿÿÿÿ8æĞ¯¤-
+csquid:S2147f"ECombine this catch with the one at line 100, which has the same body.(åşáÿ8æĞ¯¤-
+gsquid:S2147["DCombine this catch with the one at line 89, which has the same body.(¼¯•¶ùÿÿÿÿ8æĞ¯¤-
+usquid:S00117S"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(Å—Šãøÿÿÿÿ8æĞ¯¤-
+rsquid:S00100-"NRename this method name to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÎğŞÏúÿÿÿÿ8æĞ¯¤-
+Fsquid:S1148g"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8æĞ¯¤-
