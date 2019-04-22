@@ -20,11 +20,19 @@ import ru.ecutula.fileprovider.item.DirItem;
 import ru.ecutula.fileprovider.item.Item;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder> {
+  public List<Item> getItems() {
+    return items;
+  }
+
+  public void setItems(List<Item> items) {
+    this.items = items;
+  }
+
   private List<Item> items;
   private LayoutInflater inflater;
   private Context context;
 
-  private ItemAdapter(Context context, List<Item> items) {
+  public ItemAdapter(Context context, List<Item> items) {
     this.items = items;
     this.context = context;
     this.inflater = LayoutInflater.from(context);

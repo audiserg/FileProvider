@@ -40,10 +40,8 @@ public class BrowserActivity extends AppCompatActivity {
     void viewUpdate(Item item){
          previousDir=new File(item.getPath()).getParent();
         List<Item> items= new FileProvider(this).GetFiles(item.getPath(),previousDir);
-
-        ItemAdapter adapter= new ItemAdapter(this,items);
-
-        rv.setAdapter(adapter);
-    }
+        ((ItemAdapter)rv.getAdapter()).setItems(items);
+        rv.getAdapter().notifyDataSetChanged();
+        }
 
 }
