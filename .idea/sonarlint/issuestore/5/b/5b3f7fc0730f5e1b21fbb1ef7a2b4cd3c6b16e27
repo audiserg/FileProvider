@@ -1,0 +1,5 @@
+
+Msquid:S1481V"0Remove this unused "currentItem" local variable.(Ô’‘Q8ËÏïà£-
+\squid:S1854V"?Remove this useless assignment to local variable "currentItem".(Ô’‘Q8ËÏïà£-
+dsquid:UselessImportCheck"4Remove this unused import 'android.app.AlertDialog'.(ª½øşüÿÿÿÿ8½Šïà£-
+Isquid:S16598"&Declare "sizeView" on a separate line.(ƒìûÿÿÿÿ8½Šïà£-
