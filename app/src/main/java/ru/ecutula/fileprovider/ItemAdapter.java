@@ -138,7 +138,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
                                     });
 
             if (!type.equals("file"))
-                builder.setMessage(context.getString(R.string.text_ask) + type + " " + currentItem.getName() + "\n");
+                builder.setMessage(context.getString(R.string.text_ask) + " "+type + " " + currentItem.getName() + "\n");
             else
                 builder.setMessage(
                         context.getString(R.string.add_text)
