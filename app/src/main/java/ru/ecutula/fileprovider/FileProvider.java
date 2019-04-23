@@ -9,6 +9,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -39,10 +40,10 @@ public class FileProvider {
 
     StorageManager storageManager = getSystemService(context, StorageManager.class);
 
-    return storageManager.getStorageVolumes();
+    return storageManager.getStorageVolumes()!=null?storageManager.getStorageVolumes():new ArrayList<StorageVolume>();
   }
 
-  List<Item> GetFiles(String path, String previosDir) {
+  List<Item> getFiles(String path, String previosDir) {
     // provide files, devices  and if need return element
     List<Item> items = new ArrayList<>();
 
@@ -165,4 +166,31 @@ public class FileProvider {
     }
     return mime;
   }
+
+  public boolean deleteFile( Item currentItem) {
+    File file = new File(currentItem.getPath());
+    boolean absolute = file.isAbsolute();
+    boolean write = file.canWrite();
+
+    //  boolean success=context.deleteFile();
+    //  delete(currentItem.getPath());
+
+
+      return file.delete();
+  }
+
+  public static void delete(String path) {
+    //deletion via system call
+    File file = new File(path);
+    if (file.exists()) {
+      String deleteCmd = "rm -r " + path;
+      Runtime runtime = Runtime.getRuntime();
+      try {
+        runtime.exec(deleteCmd);
+      } catch (IOException e) {
+      }
+    }
+  }
+
+
 }

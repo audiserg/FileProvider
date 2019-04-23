@@ -2,7 +2,7 @@ package ru.ecutula.fileprovider;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Environment;
+
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 
@@ -15,7 +15,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import ru.ecutula.fileprovider.item.BackItem;
@@ -41,7 +40,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
   public ItemAdapter(Context context, List<Item> items) {
     this.items = items;
     this.context = context;
-    this.activity=(BrowserActivity)context; 
+    this.activity = (BrowserActivity) context;
     this.inflater = LayoutInflater.from(context);
   }
 
@@ -86,9 +85,9 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
     @Override
     public void onClick(View v) {
       int position = getAdapterPosition();
-      //Log.d(">>"," position-> "+position);
-      //Prevent exception, when fast click
-      if(position<0)position=0;
+      // Log.d(">>"," position-> "+position);
+      // Prevent exception, when fast click
+      if (position < 0) position = 0;
 
       Item currentItem = items.get(position);
       if (currentItem instanceof DirItem
@@ -96,25 +95,26 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
           || currentItem instanceof DeviceItem) {
 
         adapterListUpdate(currentItem);
-      return;
+        return;
       }
-      //if item is file
+      // if item is file
       activity.getFileProvider().startActivityForFile(currentItem.getPath());
-
-
     }
 
     @Override
     public boolean onLongClick(View v) {
       int position = getAdapterPosition();
       Item currentItem = items.get(position);
-      if(currentItem instanceof FileItem||currentItem instanceof DirItem)
-      deleteFileDialog(v, currentItem);
+      if (currentItem instanceof FileItem || currentItem instanceof DirItem)
+        deleteFileDialog(currentItem);
       return false;
     }
 
-    private void deleteFileDialog(View v, final Item currentItem) {
-      String type=currentItem instanceof FileItem ?"file":currentItem instanceof DirItem ?"folder":"device";
+    private void deleteFileDialog( final Item currentItem) {
+      String type =
+          currentItem instanceof FileItem
+              ? "file"
+              : currentItem instanceof DirItem ? "folder" : "device";
       android.support.v7.app.AlertDialog.Builder builder =
           new android.support.v7.app.AlertDialog.Builder(context)
               .setTitle("DELETE FILE?")
@@ -126,30 +126,16 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
                   new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                      File file = new File(currentItem.getPath());
-                      String state = Environment.getExternalStorageState();
-                      String dir = Environment.getExternalStorageDirectory().getAbsolutePath();
-                      Boolean rem = Environment.isExternalStorageRemovable();
-                      String Root = Environment.getRootDirectory().getAbsolutePath();
-                      boolean absolute = file.isAbsolute();
-                      boolean write = file.canWrite();
-                      //  boolean success=context.deleteFile();
-                      //  delete(currentItem.getPath());
-                      boolean success=false;
-
-                      try {
-                        success = file.getCanonicalFile().delete();
-                      } catch (IOException e) {
-                        e.printStackTrace();
-                      }
+                      boolean success = false;
+                      success = activity.getFileProvider().deleteFile(currentItem);
                       if (success) {
                         items.remove(currentItem);
                         notifyDataSetChanged();
-                      }else Toast.makeText(context,"Sorry, i can't delete this file",Toast.LENGTH_SHORT).show();
+                      } else Toast.makeText(context, "Sorry, i can't delete this file", Toast.LENGTH_SHORT).show();
                     }
                   });
 
-      if (type != "file")
+      if (!type.equals("file"))
         builder.setMessage("Are you want delete " + type + " " + currentItem.getName() + "\n");
       else
         builder.setMessage(
@@ -158,56 +144,38 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
                 + "\nFile: "
                 + getNameAndExt(currentItem.getName())
                 + "\n");
-          builder.show();
-
-
+      builder.show();
     }
 
     void adapterListUpdate(Item item) {
-      //update view and get new files list from FileProvider
-      //variable deep  used for check directory tree and prevent out of border
+      // update view and get new files list from FileProvider
+      // variable deep  used for check directory tree and prevent out of border
       String currentDir = new File(item.getPath()).getParent();
-      List<Item> items;
+      List<Item> itemList;
       if (!(item instanceof BackItem)) {
-        items = activity.getFileProvider().GetFiles(item.getPath(), currentDir);
+        itemList = activity.getFileProvider().getFiles(item.getPath(), currentDir);
         activity.deep++;
       } else {
         if (--activity.deep > 0)
-          items =
-              activity.getFileProvider().GetFiles(item.getPath(), currentDir);
+          itemList = activity.getFileProvider().getFiles(item.getPath(), currentDir);
         else {
-          items = activity.getFileProvider().GetFiles(null, null);
-         activity.deep = 0;
+          itemList = activity.getFileProvider().getFiles(null, null);
+          activity.deep = 0;
         }
       }
-      setItems(items);
+      setItems(itemList);
       notifyDataSetChanged();
     }
   }
 
   private String getNameAndExt(String fullname) {
-  int index=fullname.lastIndexOf(".");
-  if(index==-1) return fullname;
-  String filename=fullname.substring(0,index);
-  String extension=fullname.substring(index).replace(".","");
-  String add="";
-  if (extension!=null||extension!="")add="\nExtention: "+extension;
-  return filename+add;
+    int index = fullname.lastIndexOf('.');
+    if (index == -1) return fullname;
+    String filename = fullname.substring(0, index);
+    String extension = fullname.substring(index).replace(".", "");
+    String add = "";
+    // if (extension!=null||extension!="")
+    add = "\nExtention: " + extension;
+    return filename + add;
   }
-
-
-
-  public static void delete(String path) {
-    File file = new File(path); //Создаем файловую переменную
-    if (file.exists()) { //Если файл или директория существует
-      String deleteCmd = "rm -r " + path; //Создаем текстовую командную строку
-      Runtime runtime = Runtime.getRuntime();
-      try {
-        runtime.exec(deleteCmd); //Выполняем системные команды
-      } catch (IOException e) {
-      }
-    }
-  }
-
-
 }
