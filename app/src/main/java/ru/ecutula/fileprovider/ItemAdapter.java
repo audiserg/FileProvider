@@ -1,7 +1,8 @@
 package ru.ecutula.fileprovider;
 
-import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import ru.ecutula.fileprovider.item.BackItem;
@@ -93,7 +95,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
           || currentItem instanceof BackItem
           || currentItem instanceof DeviceItem) {
 
-        viewUpdate(currentItem);
+        adapterListUpdate(currentItem);
       return;
       }
       //if item is file
@@ -106,16 +108,46 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
     public boolean onLongClick(View v) {
       int position = getAdapterPosition();
       Item currentItem = items.get(position);
+      if(currentItem instanceof FileItem||currentItem instanceof DirItem)
       deleteFileDialog(v, currentItem);
       return false;
     }
 
-    private void deleteFileDialog(View v, Item currentItem) {
+    private void deleteFileDialog(View v, final Item currentItem) {
       String type=currentItem instanceof FileItem ?"file":currentItem instanceof DirItem ?"folder":"device";
-      android.support.v7.app.AlertDialog.Builder builder=new android.support.v7.app.AlertDialog.Builder(context)
-          .setTitle("DELETE FILE?")
-          .setIcon(android.R.drawable.ic_dialog_alert)
-          .setCancelable(true);
+      android.support.v7.app.AlertDialog.Builder builder =
+          new android.support.v7.app.AlertDialog.Builder(context)
+              .setTitle("DELETE FILE?")
+              .setIcon(android.R.drawable.ic_dialog_alert)
+              .setCancelable(true)
+              .setNegativeButton("Cancel", null)
+              .setPositiveButton(
+                  "OK",
+                  new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                      File file = new File(currentItem.getPath());
+                      String state = Environment.getExternalStorageState();
+                      String dir = Environment.getExternalStorageDirectory().getAbsolutePath();
+                      Boolean rem = Environment.isExternalStorageRemovable();
+                      String Root = Environment.getRootDirectory().getAbsolutePath();
+                      boolean absolute = file.isAbsolute();
+                      boolean write = file.canWrite();
+                      //  boolean success=context.deleteFile();
+                      //  delete(currentItem.getPath());
+                      boolean success=false;
+
+                      try {
+                        success = file.getCanonicalFile().delete();
+                      } catch (IOException e) {
+                        e.printStackTrace();
+                      }
+                      if (success) {
+                        items.remove(currentItem);
+                        notifyDataSetChanged();
+                      }else Toast.makeText(context,"Sorry, i can't delete this file",Toast.LENGTH_SHORT).show();
+                    }
+                  });
 
       if (type != "file")
         builder.setMessage("Are you want delete " + type + " " + currentItem.getName() + "\n");
@@ -128,11 +160,10 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
                 + "\n");
           builder.show();
 
-      Toast.makeText(v.getContext(), "Pressed long " + getAdapterPosition(), Toast.LENGTH_SHORT)
-          .show();
+
     }
 
-    void viewUpdate(Item item) {
+    void adapterListUpdate(Item item) {
       //update view and get new files list from FileProvider
       //variable deep  used for check directory tree and prevent out of border
       String currentDir = new File(item.getPath()).getParent();
@@ -163,4 +194,20 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
   if (extension!=null||extension!="")add="\nExtention: "+extension;
   return filename+add;
   }
+
+
+
+  public static void delete(String path) {
+    File file = new File(path); //Создаем файловую переменную
+    if (file.exists()) { //Если файл или директория существует
+      String deleteCmd = "rm -r " + path; //Создаем текстовую командную строку
+      Runtime runtime = Runtime.getRuntime();
+      try {
+        runtime.exec(deleteCmd); //Выполняем системные команды
+      } catch (IOException e) {
+      }
+    }
+  }
+
+
 }
