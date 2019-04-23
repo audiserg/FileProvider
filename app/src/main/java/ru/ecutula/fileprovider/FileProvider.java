@@ -29,168 +29,168 @@ import static android.support.v4.content.ContextCompat.getSystemService;
 
 public class FileProvider {
 
-  private Context context;
+    private Context context;
 
-  public FileProvider(Context context) {
-    this.context = context;
-  }
-
-  private List<StorageVolume> getStorage() {
-    // Get registered storage
-
-    StorageManager storageManager = getSystemService(context, StorageManager.class);
-
-    return storageManager.getStorageVolumes()!=null?storageManager.getStorageVolumes():new ArrayList<StorageVolume>();
-  }
-
-  List<Item> getFiles(String path, String previosDir) {
-    // provide files, devices  and if need return element
-    List<Item> items = new ArrayList<>();
-
-    if (previosDir != null) {
-      items.add(new BackItem("Back", path, previosDir));
+    public FileProvider(Context context) {
+        this.context = context;
     }
-    if (path == null) {
 
-      items = storageToItem(getStorage());
-    } else {
+    private List<StorageVolume> getStorage() {
+        // Get registered storage
 
-      File file = new File(path);
-      File[] fileArray = file.listFiles();
-      if (fileArray == null) {
-        Toast.makeText(context, "Please Add Permission", Toast.LENGTH_LONG).show();
-        return items;
-      }
-      for (File element : fileArray) {
-        if (element.isDirectory())
-          items.add(new DirItem(element.getName(), element.getAbsolutePath()));
-        else {
-          items.add(
-              new FileItem(
-                  element.getName(),
-                  Long.toString(element.length() / 1000) + " Kb",
-                  element.getAbsolutePath()));
+        StorageManager storageManager = getSystemService(context, StorageManager.class);
+
+        return storageManager.getStorageVolumes() != null ? storageManager.getStorageVolumes() : new ArrayList<StorageVolume>();
+    }
+
+    List<Item> getFiles(String path, String previosDir) {
+        // provide files, devices  and if need return element
+        List<Item> items = new ArrayList<>();
+
+        if (previosDir != null) {
+            items.add(new BackItem("Back", path, previosDir));
         }
-      }
+        if (path == null) {
+
+            items = storageToItem(getStorage());
+        } else {
+
+            File file = new File(path);
+            File[] fileArray = file.listFiles();
+            if (fileArray == null) {
+                Toast.makeText(context, "Please Add Permission", Toast.LENGTH_LONG).show();
+                return items;
+            }
+            for (File element : fileArray) {
+                if (element.isDirectory())
+                    items.add(new DirItem(element.getName(), element.getAbsolutePath()));
+                else {
+                    items.add(
+                            new FileItem(
+                                    element.getName(),
+                                    Long.toString(element.length() / 1000) + " Kb",
+                                    element.getAbsolutePath()));
+                }
+            }
+        }
+
+        return sorted(items);
     }
 
-    return sorted(items);
-  }
+    private List<Item> storageToItem(List<StorageVolume> storageVolumes) {
+        // Convert storage Volumes to items
+        List<Item> items = new ArrayList<>();
+        Method methodGetPath = null;
+        Class<?> StorageVolume = null;
 
-  private List<Item> storageToItem(List<StorageVolume> storageVolumes) {
-    // Convert storage Volumes to items
-    List<Item> items = new ArrayList<>();
-    Method methodGetPath = null;
-    Class<?> StorageVolume = null;
+        try {
+            StorageVolume = Class.forName("android.os.storage.StorageVolume");
+            methodGetPath = StorageVolume.getDeclaredMethod("getPath");
 
-    try {
-      StorageVolume = Class.forName("android.os.storage.StorageVolume");
-      methodGetPath = StorageVolume.getDeclaredMethod("getPath");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
 
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-    } catch (NoSuchMethodException e) {
-      e.printStackTrace();
+        for (StorageVolume volume : storageVolumes) {
+            String path = "";
+
+            try {
+                path = (String) methodGetPath.invoke(volume);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+            if (volume.isRemovable()) items.add(new DeviceItem("SDCard", volume.toString(), path));
+            else items.add(new DeviceItem("Phone", volume.toString(), path));
+        }
+        return items;
     }
 
-    for (StorageVolume volume : storageVolumes) {
-      String path = "";
+    private List<Item> sorted(List<Item> list) {
+        // Sort
+        Collections.sort(
+                list,
+                new Comparator<Item>() {
+                    @Override
+                    public int compare(Item o1, Item o2) {
+                        // back first
+                        // dir second
+                        // file a-b
+                        if (o2 instanceof BackItem) return 1;
+                        if (o1 instanceof BackItem) return -1;
+                        if (o2 instanceof DirItem && o1 instanceof DirItem)
+                            return o1.getName().compareTo(o2.getName());
+                        if (o2 instanceof DirItem && o1 instanceof FileItem) return 1;
+                        if (o1 instanceof DirItem && o2 instanceof FileItem) return -1;
+                        if (o2 instanceof FileItem && o1 instanceof FileItem)
+                            return o1.getName().compareTo(o2.getName());
 
-      try {
-        path = (String) methodGetPath.invoke(volume);
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
-      }
-      if (volume.isRemovable()) items.add(new DeviceItem("SDCard", volume.toString(), path));
-      else items.add(new DeviceItem("Phone", volume.toString(), path));
+                        return 0;
+                    }
+                });
+
+        return list;
     }
-    return items;
-  }
 
-  private List<Item> sorted(List<Item> list) {
-    // Sort
-    Collections.sort(
-        list,
-        new Comparator<Item>() {
-          @Override
-          public int compare(Item o1, Item o2) {
-            // back first
-            // dir second
-            // file a-b
-            if (o2 instanceof BackItem) return 1;
-            if (o1 instanceof BackItem) return -1;
-            if (o2 instanceof DirItem && o1 instanceof DirItem)
-              return o1.getName().compareTo(o2.getName());
-            if (o2 instanceof DirItem && o1 instanceof FileItem) return 1;
-            if (o1 instanceof DirItem && o2 instanceof FileItem) return -1;
-            if (o2 instanceof FileItem && o1 instanceof FileItem)
-              return o1.getName().compareTo(o2.getName());
+    public void startActivityForFile(String filename) {
+        // Snippet from git
+        File file = new File(filename);
+        // File file = new File(file, filename);
 
-            return 0;
-          }
-        });
+        Uri uri = Uri.fromFile(file); // .normalizeScheme();
+        String mime = getMimeType(uri.toString());
 
-    return list;
-  }
+        // Open file with user selected app
 
-  public void startActivityForFile(String filename) {
-    // Snippet from git
-    File file = new File(filename);
-    // File file = new File(file, filename);
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-    Uri uri = Uri.fromFile(file); // .normalizeScheme();
-    String mime = getMimeType(uri.toString());
+        // this crash without strict mode
+        intent.setDataAndType(uri, mime);
 
-    // Open file with user selected app
-
-    Intent intent = new Intent();
-    intent.setAction(Intent.ACTION_VIEW);
-    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-    // this crash without strict mode
-    intent.setDataAndType(uri, mime);
-
-    // this start without strict mode but not show
-    // intent.setData(uri);
-    // intent.setType(mime);
-    context.startActivity(intent);
-  }
-
-  public String getMimeType(String url) {
-    String ext = MimeTypeMap.getFileExtensionFromUrl(url);
-    String mime = null;
-    if (ext != null) {
-      mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+        // this start without strict mode but not show
+        // intent.setData(uri);
+        // intent.setType(mime);
+        context.startActivity(intent);
     }
-    return mime;
-  }
 
-  public boolean deleteFile( Item currentItem) {
-    File file = new File(currentItem.getPath());
-    boolean absolute = file.isAbsolute();
-    boolean write = file.canWrite();
-
-    //  boolean success=context.deleteFile();
-    //  delete(currentItem.getPath());
-
-
-      return file.delete();
-  }
-
-  public static void delete(String path) {
-    //deletion via system call
-    File file = new File(path);
-    if (file.exists()) {
-      String deleteCmd = "rm -r " + path;
-      Runtime runtime = Runtime.getRuntime();
-      try {
-        runtime.exec(deleteCmd);
-      } catch (IOException e) {
-      }
+    public String getMimeType(String url) {
+        String ext = MimeTypeMap.getFileExtensionFromUrl(url);
+        String mime = null;
+        if (ext != null) {
+            mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+        }
+        return mime;
     }
-  }
+
+    public boolean deleteFile(Item currentItem) {
+        File file = new File(currentItem.getPath());
+        boolean absolute = file.isAbsolute();
+        boolean write = file.canWrite();
+
+        //  boolean success=context.deleteFile();
+        //  delete(currentItem.getPath());
+
+
+        return file.delete();
+    }
+
+    public static void delete(String path) {
+        //deletion via system call
+        File file = new File(path);
+        if (file.exists()) {
+            String deleteCmd = "rm -r " + path;
+            Runtime runtime = Runtime.getRuntime();
+            try {
+                runtime.exec(deleteCmd);
+            } catch (IOException e) {
+            }
+        }
+    }
 
 
 }

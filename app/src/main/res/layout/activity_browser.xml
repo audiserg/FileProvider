@@ -14,7 +14,7 @@
         android:layout_height="match_parent"
         tools:layout_editor_absoluteX="8dp"
         tools:layout_editor_absoluteY="8dp"
-        tools:listitem="@layout/recycler_view_item"
+
         tools:spanCount="5"
-        tools:layoutManager="GridLayoutManager" />
+        tools:layoutManager="LiLayoutManager" />
 </android.support.constraint.ConstraintLayout>
